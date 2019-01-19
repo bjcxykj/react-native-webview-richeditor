@@ -236,11 +236,9 @@ export default class WebViewRichEditor extends Component {
         const { id } = task
         tasklist.addEventListener(id, 'complete', ({ url }) => {
           console.log('上传生成的图片')
-          console.log(url)
           const sourceUrl = PageUrl.getImageUrl({url, size: 'm'})
           console.log(PageUrl.getImageUrl({url, size: 'm'}))
           let timestamp = new Date().getTime().toString();
-          // let base64 = 'data:image/png;base64,' + response.data;
           this.postMessage(
             JSON.stringify({
               command: 'insertLocalImage',
