@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 
 import ImagePicker from 'react-native-image-picker';
+import UploadTaskList from "../../components/netDisk/util/UploadTaskList";
 
 const ICON_CHECK = String.fromCharCode(parseInt('e900', 16));
 const ICON_UNCHECK = String.fromCharCode(parseInt('e901', 16));
@@ -225,6 +226,36 @@ export default class WebViewRichEditor extends Component {
       this.webview.postMessage(str);
     }
   }
+  Upload = async (uri) => {
+    const userInfo = await global.storage.load({ key: 'userInfo' })
+    const { userId } = userInfo
+    const tasklist = new UploadTaskList()
+    const { resumeableCheckUrl: checkUrl, resumeableUploadUrl: uploadUrl } = global.PageUrl
+    tasklist.create({ userId, path: uri, checkUrl, uploadUrl })
+      .then(task => {
+        const { id } = task
+        tasklist.addEventListener(id, 'complete', ({ url }) => {
+          console.log('上传生成的图片')
+          console.log(url)
+          const sourceUrl = PageUrl.getImageUrl({url, size: 'm'})
+          console.log(PageUrl.getImageUrl({url, size: 'm'}))
+          let timestamp = new Date().getTime().toString();
+          // let base64 = 'data:image/png;base64,' + response.data;
+          this.postMessage(
+            JSON.stringify({
+              command: 'insertLocalImage',
+              id: timestamp,
+              source: sourceUrl
+            })
+          );
+        })
+        tasklist.addEventListener(id, 'error', () => {
+          console.log('上传头像失败')
+        })
+        tasklist.start(id)
+      })
+      .catch(reject)
+  }
 
   renderButton() {
     if (this.commands && this.commands.length > 0) {
@@ -236,6 +267,7 @@ export default class WebViewRichEditor extends Component {
           key={index}
           style={styles.button}
           onPress={() => {
+           
             switch (item.name) {
               case 'INSERTLOCALIMAGE':
                 const options = {
@@ -249,6 +281,9 @@ export default class WebViewRichEditor extends Component {
                   }
                 };
                 ImagePicker.showImagePicker(options, (response) => {
+                  console.log(response)
+                  this.Upload(response.path)
+                  return
                   if (response.didCancel) {
                   } else if (response.error) {
                   } else if (response.customButton) {
