@@ -34,6 +34,9 @@ const ICON_BOLD = String.fromCharCode(parseInt('e914', 16));
 const ICON_ITALIC = String.fromCharCode(parseInt('e915', 16));
 const ICON_QUOTE = String.fromCharCode(parseInt('e916', 16));
 
+const defaultProps = {
+  onImage: function(){}
+}
 
 export default class WebViewRichEditor extends Component {
   constructor(props) {
@@ -253,15 +256,16 @@ export default class WebViewRichEditor extends Component {
                   } else if (response.error) {
                   } else if (response.customButton) {
                   } else {
-                    let timestamp = new Date().getTime().toString();
-                    let base64 = 'data:image/png;base64,' + response.data;
-                    this.postMessage(
-                      JSON.stringify({
-                        command: 'insertLocalImage',
-                        id: timestamp,
-                        source: base64
-                      })
-                    );
+                    this.props.onImage(response, remoteUrl => {
+                      let timestamp = new Date().getTime().toString();
+                      this.postMessage(
+                        JSON.stringify({
+                          command: 'insertLocalImage',
+                          id: timestamp,
+                          source: remoteUrl
+                        })
+                      )
+                    })
                   }
                 });
 
@@ -333,6 +337,7 @@ export default class WebViewRichEditor extends Component {
     );
   }
 }
+WebViewRichEditor.defaultProps = defaultProps
 
 const styles = StyleSheet.create({
   container: {
