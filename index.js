@@ -14,8 +14,6 @@ import {
   View
 } from 'react-native';
 
-import ImagePicker from 'react-native-image-picker';
-
 const ICON_CHECK = String.fromCharCode(parseInt('e900', 16));
 const ICON_UNCHECK = String.fromCharCode(parseInt('e901', 16));
 const ICON_REDO = String.fromCharCode(parseInt('e902', 16));
@@ -238,37 +236,25 @@ export default class WebViewRichEditor extends Component {
         return (<TouchableOpacity
           key={index}
           style={styles.button}
-          onPress={() => {
+          onPress={async () => {
             switch (item.name) {
               case 'INSERTLOCALIMAGE':
-                const options = {
-                  title: "选择图片",
-                  cancelButtonTitle: "取消",
-                  takePhotoButtonTitle: "从相机选择",
-                  chooseFromLibraryButtonTitle: "从相册选择",
-                  storageOptions: {
-                    skipBackup: true,
-                    path: 'images'
-                  }
-                };
-                ImagePicker.showImagePicker(options, (response) => {
-                  if (response.didCancel) {
-                  } else if (response.error) {
-                  } else if (response.customButton) {
-                  } else {
-                    this.props.onImage(response, remoteUrl => {
-                      let timestamp = new Date().getTime().toString();
-                      this.postMessage(
-                        JSON.stringify({
-                          command: 'insertLocalImage',
-                          id: timestamp,
-                          source: remoteUrl
-                        })
-                      )
-                    })
-                  }
-                });
+                try {
+                  const remoteUrl = await this.props.onImage()
+                      let timestamp = new Date()
+                        .getTime()
+                        .toString()
 
+                  this.postMessage(
+                    JSON.stringify({
+                      command: 'insertLocalImage',
+                      id: timestamp,
+                      source: remoteUrl
+                    })
+                  )
+                } catch (error) {
+                  console.error(error)
+                }
                 break;
               case 'H1':
               case 'H2':
